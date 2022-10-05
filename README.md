@@ -1,3 +1,5 @@
+#C++学习笔记
+个人通过学习C++，整理出C++的重难点，包括封装继承多态等面向对象的思想，持续更新
 # Clion 的简单注意事项
 1. .h做声明，.cpp做实现。main文件include .h文件即可
 2. 想在clion中include库文件，需要修改CMakeLists，具体来说
