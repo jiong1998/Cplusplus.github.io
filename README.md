@@ -1,5 +1,6 @@
-#C++学习笔记
+# C++学习笔记 
 个人通过学习C++，整理出C++的重难点，包括封装继承多态等面向对象的思想，持续更新
+
 # Clion 的简单注意事项
 1. .h做声明，.cpp做实现。main文件include .h文件即可
 2. 想在clion中include库文件，需要修改CMakeLists，具体来说
@@ -309,7 +310,47 @@ void test4()
     p.show_age();
 }
 ```
-## 8.	友元 friend&ensp;
+
+## 8. 额外补充：分文件的类成员函数的声明与实现
+对于普通类，如果我们想分文件来声明与实现，一般是
+头文件person.h(假设类名是Person)中声明，
+person.cpp中#include "person.h" 并实现函数。
+在主要运行程序 main.c中 #include "person.h"
+
+代码实例:
+person.h
+```cpp
+//.h文件只需要声明
+#include <iostream>
+using namespace std;
+
+class Person
+{
+public:
+    Person(string name, int age);
+    void showPerson();
+    string m_name;
+    int m_age;
+};
+```
+
+person.cpp
+```cpp
+//.cpp文件只需要实现
+#include "person.h"
+Person::Person(string name, string age)
+{
+this->m_name=name;
+this->m_age=age;
+}
+
+void Person::showPerson()
+{
+    cout<<"姓名"<<this->m_name<<"年龄"<<this->m_age<<endl;
+}
+```
+
+## 9.	友元 friend&ensp;
 类的主要特点之一是数据隐藏，即类的私有成员无法在类的外部(作用域之外)访问。但是，有时候需要在**类的外部访问类的私有成员**，怎么办？
 解决方法是使用**友元函数**，友元函数是一种**特权函数**，c++**允许这个特权函数访问私有成员**。
 
@@ -415,10 +456,6 @@ MyInter MyInt;//构造一个对象MyInt
 MyInter MyInt;//构造一个对象MyInt
 MyInt++;//重载前置++运算符
  ```
-## 重载指针运算符
-## 重载赋值运算符
-## 重载[]运算符
-上面三章内容未看，先看day6继承先，有空再回看这三章内容。  
 ## 重载函数调用运算符
 小括号重载
 
@@ -439,6 +476,13 @@ void test3()
     myPrint("heelo");//重载函数调用运算符，称仿函数
 }
 ```
+## 重载指针运算符
+## 重载赋值运算符
+## 重载[]运算符
+## 重载关系运算符
+上面四章内容未看，先看day6继承先，有空再回看这四章内容。  
+
+
 
 # DAY6 (开始继承！)
 ## 1. 强化训练-字符串类封装
@@ -940,10 +984,11 @@ class AppleMemory:public Memory
 
 void test4()
 {
+	//苹果配件
     VideoCard * appleVC=new AppleVideoCard;
     CPU * applecpu=new AppleCPU;
     Memory * applememory= new AppleMemory;
-
+	//Inter配件
     VideoCard * interVC=new InterVideoCard;
     CPU* intercpu=new InterCPU;
     Memory * intermemory=new InterMemory;
@@ -960,3 +1005,213 @@ void test4()
 这是因特尔显卡在显示
 这是苹果内存在存储
 ```
+
+# DAY8 (C++模版)
+## 1. 函数模板
+### 1.1 函数模板的概念
+c++提供了函数模板(function template.)所谓函数模板，实际上是建立一个通用函数，其函数类型和**形参类型**不具体制定，**用一个虚拟的类型来代表**。这个通用函数就成为函数模板。凡是函数体相同的函数都可以用这个模板代替，不必定义多个函数，只需在模板中定义一次即可。在调用函数时系统会根据实参的类型来取代模板中的虚拟类型，从而实现不同函数的功能。
+
+**c++提供两种模板机制:函数模板和类模板**
+```cpp
+//利用模板实现通用交换函数
+template <typename T>//T代表一个通用的数据类型
+//typename也可以用class
+void mySwap(T&a,T&b)
+{
+    T temp=a;
+    a=b;
+    b=temp;
+}
+
+void test1()
+{
+	int a=10,b=20;
+	//1、自动类型推导，必须推导出一致的数据类型，才可以使用模板
+	mySwap(a,b);
+	//2、显示指定类型
+	mySwap<int>(a,b);
+}
+```
+两种方式使用函数模板：
+1. 自动类型推导，必须推导出一致的数据类型，才可以使用模板
+2. 显示指定类型
+
+注意：template \<typename T>是告诉 编译器**紧跟着的下一个函数或者类**中出现T不要报错（记住是紧跟着下一个）。 而且**必须通过上述两种方式的任意一种告诉编译器T的数据类型。**
+
+泛型编程 – 模板技术 特点：类型参数化
+
+### 1.2 当存在模板函数和普通函数时的规则
+当写了一个函数模板，又重载了一个普通函数时，就会发生函数模板和普通函数都存在的情况。
+```cpp
+template <class T>
+void myPrint(T a, T b){}
+void myPrint(int a, int b){}
+```
+
+**区别**：
+函数模板：如果使用自动类型推导，是不可以发生隐式类型转换的（char-> int）
+普通函数：可以发生隐式类型转换
+
+**调用规则**：
+- 如果函数模板和普通函数都可以调用，那么优先调用普通函数
+- 如果想强制调用函数模板，可以使用空模板参数列表
+&emsp;&emsp;myPrint **<>** (a, b);
+- 函数模板也可以发生函数重载
+- 如果函数模板能产生更好的匹配，那么优先使用函数模板
+
+### 1.3 函数模板实现机制
+函数模板机制结论：
+- 编译器并不是把函数模板处理成能够处理任何类型的函数
+- **函数模板通过具体数据类型产生不同的函数**，具体来说，如果你传入的参数是int，则函数模板会根据你传入的参数产生一个新的函数----接收int类型的函数，通过函数模板产生的函数称为模板函数。
+- 编译器会对函数模板进行**两次编译**，在声明的地方对模板代码本身进行编译，在调用的地方对参数替换后的代码进行编译。
+### 1.4 函数模板局限性
+前面结论说到，编译器并不是把函数模板处理成能够处理任何类型的函数。比如交换两个数的函数模板，如果传入的是结构体，或者数组，甚至一个类，模板就解决不了。这就是模板的局限性
+
+那么如何解决模板的局限性呢？
+&emsp;&emsp;为了解决这种问题，可以利用**重载** 或者**具体化技术**，为这些特定的类型提供具体化的模板。
+
+具体化技术：
+**template<>** bool myCompare(Person & p1, Person & p2);
+//其实不加template<>好像也可以
+
+
+## 2. 类模板
+### 2.1 类模板的概念
+类模版与函数模板的区别：
+1. 类模板不可以使用自动类型推导，只能用显示指定类型
+2. 类模板 可以有默认参数
+
+```cpp
+//类模板
+template <class T1, class T2>
+//template <class NAMETYPE, class AGETYPE=int>//可以有默认参数
+class Person1
+{
+public:
+    Person1(T1 name, T2 age)
+    {
+        this->m_name=name;
+        this->m_age=age;
+    }
+    T1 m_name;
+    T2 m_age;
+};
+
+void test3()
+{
+    Person1<string, int> p1=Person1<string, int>("小卢",13);//显示指定类型
+    //Person1<string> p1=Person1<string>("小卢",13);//有默认参数情况下的
+    cout<<p1.m_name<<endl;
+}
+```
+
+### 2.2 类模板的成员函数是什么时候创建的
+类模板的成员函数不是一开始创建好的，只有在运行阶段，确定了T的数据类型，才会创建。
+
+### 2.3 类模板做函数参数
+
+当dowork函数想调用类模板作为函数的参数，有以下三种方式
+1. 指定传入类型（最常用）
+void doWork(**Person <string, int>**&p)
+2. 参数模板化
+template<class T1, class T2>
+void doWork2(Person <T1, T2>&p)
+3. 整个类 模板化
+template<class T>
+void doWork3( T &p)
+
+
+```cpp
+//类模板
+template <class T1, class T2>
+class Person1
+{
+public:
+    Person1(T1 name, T2 age)
+    {
+        this->m_name=name;
+        this->m_age=age;
+    }
+    T1 m_name;
+    T2 m_age;
+    void showPerson(){}
+};
+
+//1 指定传入类型（最常用）
+void doWork(Person <string, int>&p)
+{
+p.showPerson()
+}
+//2 参数模板化
+template<class T1, class T2>
+void doWork2(Person <T1, T2>&p)
+{
+p.showPerson()
+}
+//3 整个类 模板化
+template<class T>
+void doWork3( T &p)
+{
+p.showPerson()
+}
+```
+### 2.4 类模板遇到继承的问题
+继承时，必须指定出父类中的T数据类型，才能给子类分配内存。
+有两种方式
+1. 在子类中明确指定出父类的数据类型（int / char 等）
+2. 在子类中，再创造类模板
+```cpp
+template <class T>
+class Base
+{
+public:
+	T m_A;
+};
+//方法1：指定出明确的数据类型
+class Son1 : public Base <int>//如果要继承，必须指定出数据类型
+{
+};
+//方法2
+//或者 子类也可以不写死数据类型，再指定一个类模板
+template <class T1, class T2>
+class Son2: public Base<T2>
+{
+public:
+	T1 m_B;
+}
+```
+
+### 2.5 类模板的类内声明，类外实现
+```cpp
+//类模板的类内声明，类外实现
+template <class T1, class T2>
+class Person2
+{
+public:
+	//类内声明，类外实现。
+    Person2(T1 name, T2 age);
+    void showPerson();
+    T1 m_name;
+    T2 m_age;
+};
+
+template <class T1, class T2>
+Person2<T1,T2>::Person2(T1 name, T2 age)
+{
+this->m_name=name;
+this->m_age=age;
+}
+
+template <class T1, class T2>
+ //就算没有用到T1和T2，但是类模板的类外实现就得加上
+void Person2<T1,T2>::showPerson()
+{
+    cout<<"姓名"<<this->m_name<<"年龄"<<this->m_age<<endl;
+}
+```
+### 2.6 类模板的成员函数分文件声明与实现
+存在问题：
+类模板的成员函数分文件声明与实现与普通类有个区别，就是在主函数main.cpp中不能 #include <类.h>, 会报错，除非#include <类.cpp>。但是一般别人不会给你cpp源码，
+
+解决方法：
+**所以一般类模板不会分文件声明与实现**，一般声明与实现会写在一个person.h的头文件中，但是正经的.h文件不能有实现，**所以后缀会改成person.hpp。** 特指类模板的声明与实现才会用到后缀 **.hpp**。
