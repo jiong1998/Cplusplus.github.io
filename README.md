@@ -1,6 +1,5 @@
 # C++学习笔记 
 个人通过学习C++，整理出C++的重难点，包括封装继承多态等面向对象的思想，持续更新
-
 # Clion 的简单注意事项
 1. .h做声明，.cpp做实现。main文件include .h文件即可
 2. 想在clion中include库文件，需要修改CMakeLists，具体来说
@@ -41,7 +40,7 @@ add_executable(client client.c)
 target_link_libraries(client libunp.a)//把库文件链接上
 ```
 
-# DAY1
+# 第一章
 ## 1. 双冒号作用域运算符
 ::代表作用域  如果前面什么都不添加 代表全局作用
 
@@ -78,7 +77,7 @@ int& aRef = a;
 
 3. 引用的函数参数传递：void function(int &a)
 
-# Day2
+# 第二章
 ## 1. 内联函数
 c++从c中继承的一个重要特征就是效率。假如c++的效率明显低于c的效率，那么就会有很大的一批程序员不去使用c++了。在c中我们经常把一些短并且执行频繁的计算写成宏，而不是函数，这样做的理由是为了执行效率，宏可以避免函数调用的开销，这些都由预处理来完成。为了保持预处理宏的效率又增加安全性，而且还能像一般成员函数那样可以在类里访问自如，c++引入了**内联函数**(inline function). 内联函数为了继承宏函数的效率，没有函数调用时开销，然后又可以像普通函数那样，可以进行参数，返回值类型的安全检查，又可以作为成员函数。**内联函数是直接跑源码，不通过函数的调用**。
 ```cpp
@@ -111,7 +110,7 @@ c++中struct也可以使用函数，他们的唯一区别：
 protected和private的区别：子类不可以访问父类private的内容，但是可以访问父类protected的内容。
 
 **尽量将成员变量设置成私有，设置公共接口来让别人设置**:好处是自己可以控制读写的权限，并且可以对设置进行有效性的验证。
-# Day3
+# 第三章
 ## 1. 构造函数和析构函数
 对象的初始化和清理也是两个非常重要的安全问题，一个对象或者变量没有初始时，对其使用后果是未知，同样的使用完一个变量，没有及时清理，也会造成一定的安全问题。c++为了给我们提供这种问题的解决方案，**构造函数**和**析构函数**，这两个函数将会被编译器自动调用，分别完成**对象初始化**和**对象清理**工作。
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/55ab689dc6a04a519546f616a25bd7fb.png)
@@ -126,6 +125,8 @@ protected和private的区别：子类不可以访问父类private的内容，但
 匿名对象：Person(10);
 	特点：执行完立即释放
 
+注意，拷贝构造函数的输入参数是const引用类型
+Person(**const** Person **&** p);//这是一个拷贝构造函数
 ## 2. 构造函数调用规则
 1. 默认情况下，c++编译器至少为我们写的类增加3个函数
 - 默认构造函数(无参，函数体为空)
@@ -135,6 +136,42 @@ protected和private的区别：子类不可以访问父类private的内容，但
 2. 但是如果定义了普通构造函数，系统就不会默认提供无参构造函数，但是会提供默认拷贝构造函数
 3. 但是如果提供了拷贝构造函数，则有参和无参的构造函数都不提供。
 
+```cpp
+//拷贝构造函数的语法
+class Person
+{
+public:
+    Person(char * name, int age)//构造函数
+    {
+        m_name=(char *) malloc(strlen(name)+1);
+        strcpy(m_name,name);
+        m_age=age;
+    }
+    Person(const Person & p)//拷贝构造函数
+    {
+        m_name=(char *) malloc(strlen(p.m_name)+1);
+        strcpy(m_name,p.m_name);
+        m_age=p.m_age;
+    }
+    ~Person()
+    {
+        cout<<"析构函数已调用"<<endl;
+        free(m_name);
+        m_name=NULL;
+    }
+
+    int m_age;
+    char * m_name;
+};
+
+void test3()
+{
+    Person p1=Person("卢锦荣",20);
+    Person p2=p1;
+    cout<<p1.m_name<<"\n"<<p1.m_age<<endl;
+    cout<<p2.m_name<<"\n"<<p2.m_age<<endl;
+}
+```
 ## 3. 深拷贝和浅拷贝
 当你利用系统默认的拷贝构造函数时，可能会出错：
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;类中有成员是指针变量，并且指针指向动态分配的内存空间，当你用系统默认的拷贝构造，**会把两个对象的同一个成员指向同一个堆区（浅拷贝）**，所以当析构函数释放内存时，会把一个堆区释放两次
@@ -174,7 +211,7 @@ Person* person = new Person[10];
 delete person;//error
 delete [] person;//对！如果在new表达式中使用[]，必须在相应的delete表达式中也使用[]
 ```
-# DAY4
+# 第四章
 ## 1. static
 static（静态）: 
 	1. 被static修饰的类型，空间将在**程序的生命周期内分配**。（记住这个结论！很关键，不管是变量，对象的变量，对象的函数都是如此）
@@ -390,7 +427,7 @@ void goodGay(Building * buliding)
 	cout << buliding->m_BedRoom << endl;
 }
 ```
-# DAY5(关于运算符重载那些事)
+# 第五章(关于运算符重载那些事)
 ## 1. 运算符重载基本概念
 运算符重载，就是对**已有的运算符重新进行定义**，赋予其另一种功能，以适应不同的数据类型。
  &emsp; &emsp;注意： 运算符重载只是一种”语法上的方便”,也就是它只是另一种函数调用的方式。在c++中，可以定义一个处理类的新运算符。这种定义很像一个普通的函数定义，只是函数的名字是关键字**operator@**,这里的@代表了被重载的运算符。
@@ -484,7 +521,7 @@ void test3()
 
 
 
-# DAY6 (开始继承！)
+# 第六章 (开始继承！)
 ## 1. 强化训练-字符串类封装
 05-06没看，晚上编一下代码实现它
 ## 2. 继承
@@ -626,7 +663,7 @@ class SheepTuo : public Sheep, public Tuo
 ```
 当发生虚继承后，sheep和tuo类中继承了一个  **vbptr指针---虚基类指针**  ，指向的是一个 **虚基类表  vbtable**。虚基类表中记录了  偏移量 ，通过偏移量 可以找到唯一的一个m_Age，具体来说，利用地址偏移找到 vbtable中的偏移量 并且访问数据
 
-# DAY7 (开始多态！)
+# 第七章 (开始多态！)
 ## 1 多态
 ### 1.1 多态的概念
 c++支持**静态多态**(编译时多态)和**动态多态**(运行时多态)，运算符重载和函数重载就是编译时多态，而派生类和虚函数实现运行时多态。
@@ -718,7 +755,8 @@ delete calcultor;//清空加法对象的空间
 calculator=new SubCalculator;//减法类
 calculator.getResult(1,5);//结果为-4
 ```
-这就是多态的意义：当用同样的父类指针指向不同的子类对象时，调用同样的函数，输出却是完全不同的，这就是多态的意义。
+
+<font color='red'> 这就是多态的意义：当用同样的父类指针指向不同的子类对象时，调用同样的函数，输出却是完全不同的，这就是多态的意义。 </font>
 
 这个意义就是所提倡的设计原则：开闭原则，对扩展进行开放，对修改进行关闭。
 
@@ -829,6 +867,8 @@ void test(){
 ```
 
 ### 1.3 虚析构和纯虚析构
+**父类的构造/析构函数是不会被子类继承的，<font color='red'> 只会在构造子类的时候先调用父类的继承/析构函数 </font>。**
+
 为什么需要虚析构：
 &emsp;&emsp;当**使用多态**（前提）时，即父类指针指向子类对象；**当delete时，父类指针只会调用父类析构函数，不会调用子类析构函数**。因此需要将父类的析构函数变为虚析构函数，以此才调用子类的析构函数。
 
@@ -1006,12 +1046,13 @@ void test4()
 这是苹果内存在存储
 ```
 
-# DAY8 (C++模版)
+# 第八章 (C++模版)
 ## 1. 函数模板
+c++提供两种模板机制:**函数模板**和**类模板**
 ### 1.1 函数模板的概念
 c++提供了函数模板(function template.)所谓函数模板，实际上是建立一个通用函数，其函数类型和**形参类型**不具体制定，**用一个虚拟的类型来代表**。这个通用函数就成为函数模板。凡是函数体相同的函数都可以用这个模板代替，不必定义多个函数，只需在模板中定义一次即可。在调用函数时系统会根据实参的类型来取代模板中的虚拟类型，从而实现不同函数的功能。
 
-**c++提供两种模板机制:函数模板和类模板**
+
 ```cpp
 //利用模板实现通用交换函数
 template <typename T>//T代表一个通用的数据类型
@@ -1092,6 +1133,10 @@ public:
     {
         this->m_name=name;
         this->m_age=age;
+    }
+    void showPerson()
+    {
+    	cout<<"名字"<<this->m_name<<this->m_age<<endl;
     }
     T1 m_name;
     T2 m_age;
@@ -1215,3 +1260,342 @@ void Person2<T1,T2>::showPerson()
 
 解决方法：
 **所以一般类模板不会分文件声明与实现**，一般声明与实现会写在一个person.h的头文件中，但是正经的.h文件不能有实现，**所以后缀会改成person.hpp。** 特指类模板的声明与实现才会用到后缀 **.hpp**。
+
+### 2.7 类模板与友元函数
+
+友元函数分为类内实现和类外实现。
+类外实现比较复杂，讨论类内实现
+```cpp
+//友元函数类内实现案例
+template <class T1, class T2>
+class Person
+{
+public:
+	//这其实是一个全局函数，只是类内实现的。
+	friend void printPerson(Person<T1, T2>&p)
+	{
+		cout<<m_name<<endl;
+	}
+    Person(T1 name, T2 age);
+private:
+    T1 m_name;
+    T2 m_age;
+};
+```
+
+# 第九章（类型转换、异常）
+## 1. C++类型转换
+**一般情况下，尽量少的去使用类型转换，除非用来解决非常特殊的问题。**
+
+使用C风格的强制转换可以把想要的任何东西转换成我们需要的类型。那为什么还需要一个新的C++类型的强制转换呢？
+
+新类型的强制转换可以提供更好的控制强制转换过程，允许控制各种不同种类的强制转换。C++风格的强制转换其他的好处是，它们能更清晰的表明它们要干什么。程序员只要扫一眼这样的代码，就能立即知道一个强制转换的目的。
+
+### 1.1 静态转换 
+语法：static_cast<目标类型>(原变量/原对象)
+1. 用于基类（父类）和派生类（子类）之间指针或引用的转换。
+- 进行上行转换（把派生类的指针或引用转换成基类表示）是安全的；
+- 进行下行转换（把基类指针或引用转换成派生类表示）时，由于没有动态类型检查，所以是不安全的。
+2. 允许内置数据类型转换，如把int转换成char，把char转换成int。
+```cpp
+char a='a';
+double d = static_cast<double>(a);
+//把'a'转为double型，并让d接收。
+```
+
+### 1.2 动态转换 
+语法：dynamic_cast<目标类型>(原变量/原对象)
+
+和静态转换差不多，但是比静态转换安全，具有检查的功能。如果发现不安全，就不给你转。
+
+与静态转换的区别：
+- 不允许内置数据类型转换
+- 不允许子转父（下行转换，不安全）
+
+目前看来，只允许父转子。
+
+### 1.3 常量转换
+语法：const_cast<目标类型>(原变量)
+常量转换用来修改指针/引用类型的const属性。
+
+- 常量指针被转化成非常量指针，并且仍然指向原来的对象；
+- 常量引用被转换成非常量引用，并且仍然指向原来的对象；
+
+注意:不能将非指针和非引用的变量使用const_cast操作符去移除它的const.
+
+```cpp
+const int * p = NULL;
+int *np= const_cast<int *>(p);
+//移除const属性
+```
+## 2异常
+### 2.1异常的基本概念
+
+处理异常是一种思想：让一个函数在发现了自己无法处理的错误时抛出（throw）一个异常，然后它的（直接或者间接）调用者能够处理这个问题。在所有支持异常处理的编程语言中（例如java），要认识到的一个思想：在异常处理过程中，由问题检测代码可以抛出一个对象给问题处理代码，通过这个对象的类型和内容，实际上完成了两个部分的通信，通信的内容是“出现了什么错误”。当然，各种语言对异常的具体实现有着或多或少的区别，但是这个通信的思想是不变的。
+
+一句话总结：**异常处理就是处理程序中的错误。所谓错误是指在程序运行的过程中发生的一些异常事件（如：除0溢出，数组下标越界，所要读取的文件不存在,空指针，内存不足等等）。**
+
+C语言的异常处理机制：
+- 在C语言的世界中，对错误的处理总是围绕着两种方法：一是使用整型的返回值标识错误；二是使用errno宏（可以简单的理解为一个全局整型变量）去记录错误。当然C++中仍然是可以用这两种方法的。
+- 这两种方法最大的缺陷就是会出现不一致问题。例如有些函数返回1表示成功，返回0表示出错；而有些函数返回0表示成功，返回非0表示出错。        
+- 还有一个缺点就是函数的返回值只有一个，你通过函数的返回值表示错误代码，那么函数就不能返回其他的值。当然，你也可以通过指针或者C++的引用来返回另外的值，但是这样可能会令你的程序略微晦涩难懂。
+
+c++异常机制相比C语言异常处理的优势?
+- 函数的返回值可以忽略，但异常不可忽略。如果程序出现异常，但是没有被捕获，程序就会终止，这多少会促使程序员开发出来的程序更健壮一点。而如果使用C语言的error宏或者函数返回值，调用者都有可能忘记检查，从而没有对错误进行处理，结果造成程序莫名其面的终止或出现错误的结果。
+- 整型返回值没有任何语义信息。而异常却包含语义信息，有时你从类名就能够体现出来。
+- 整型返回值缺乏相关的上下文信息。异常作为一个类，可以拥有自己的成员，这些成员就可以传递足够的信息。
+- 异常处理可以在调用跳级。这是一个代码编写时的问题：假设在有多个函数的调用栈中出现了某个错误，使用整型返回码要求你在每一级函数中都要进行处理。而使用异常处理的栈展开机制，只需要在一处进行处理就可以了，不需要每级函数都处理。
+
+### 2.2 异常的基本语法
+知识点：
+1. 异常的处理关键字：
+try &emsp;&emsp; throw &emsp;&emsp; catch
+2. 把可能出现异常的代码，放入try块。
+3. catch（类型）。如果想捕获任意类型的可以catch(...)
+4. 如果捕获的异常在当前不想处理，可以继续向上跑出，利用throw
+5. 异常必须要有函数进行处理，如果没有任何处理，程序会直接中断。
+6. 抛出的异常可以是自定义数据类型
+
+**c++异常处理使得异常的引发和异常的处理不必在一个函数中**，这样底层的函数可以着重解决具体问题，而不必过多的考虑异常的处理。上层调用者可以在适当的位置设计对不同类型异常的处理。
+
+异常代码示例
+```cpp
+#include <iostream>
+#include <string>
+using namespace std;
+
+class MyException//自己定义一个异常
+{
+public:
+    void printError()
+    {
+        cout<<"我自己的异常"<<endl;
+    }
+};
+
+int myDivision(int a, int b)//该函数作为抛出异常的函数
+{
+    if(b==0)
+    {
+//        throw 1;//抛出int类型的异常
+//        throw 'a';//抛出char类型的异常
+//        throw MyException();//抛出匿名对象
+        throw 3.14;//抛出double异常
+    }
+    return a/b;
+}
+
+void test()
+{
+    int a=10,b=0;
+    try
+    {
+        myDivision(a,b);
+    }
+    catch(int)
+    {
+        cout<<"整数类型的异常捕获"<<endl;
+    }
+    catch(char)
+    {
+        cout<<"char类型的异常捕获"<<endl;
+    }
+    //抛出的是 throw MyException();
+    //catch(MyException e)会调用拷贝构造函数，效率会低，
+    //改成catch(MyException &e)会好一点，具体看2.4
+    catch(MyException e)//抛出的异常可以是自定义数据类型
+    {
+        e.printError();
+    }
+    catch(...)//捕获任意类型的异常
+    {
+        cout<<"其他类型的捕获"<<endl;
+        throw;//如果捕获的异常在当前不想处理，可以继续向上跑出，利用throw
+    }
+}
+int main() {
+    try
+    {
+        test();
+    }
+    catch(...)//下层不想处理的异常，抛给当层做处理
+    {
+        cout<<"其他类型异常捕获"<<endl;
+    }
+    return 0;
+}
+```
+
+### 2.2 栈解旋
+从进入try块起，到异常被抛掷前，这期间在栈上构造的所有对象，都会被自动析构。析构的顺序与构造的顺序相反，这一过程称为栈的解旋
+
+### 2.3 异常的接口声明
+为了加强程序的可读性，可以在函数声明中列出可能抛出异常的所有类型，例如：void func() throw(A,B,C);这个函数func能够且只能抛出类型A,B,C及其子类的异常。
+
+一个不抛任何类型异常的函数可声明为:void func() throw()
+
+如果一个函数抛出了它的异常接口声明所不允许抛出的异常,unexcepted函数会被调用，该函数默认行为调用terminate函数中断程序。
+
+```cpp
+//异常接口声明
+void func() throw(int , double)
+{
+	throw 3.14;
+}
+```
+
+### 2.4 异常类的生命周期
+- 抛出的是 throw MyException();  catch (MyException e) 调用拷贝构造函数 效率低（构造了两个对象，一个匿名对象立刻释放，一个复制的对象）
+- **抛出的是 throw MyException();  catch (MyException &e)  只调用默认构造函数 效率高 推荐**（只构造出一个对象匿名，用一个别名接一个匿名对象，所以不会立即释放）
+- 抛出的是 throw &MyException(); catch (MyException *e) 对象会提前释放掉，不能再继续操作。（构造了一个匿名对象，出了作用域就释放）
+- 抛出的是 new MyException();   catch (MyException *e) 只调用默认构造函数 自己要管理delete（在堆区构建了一个对象，用完要自己delete）
+
+### 2.5 利用多态实现异常类
+
+直接看案例：该案例也可以看出多态的好处！
+需求：提供父类异常类，并在子类中重写virtual void printError()。通过调用父类的同一个虚函数来打印出不同的异常的结果（<font color='red'> **同一个函数由于父类指向的子类对象的不同，而打印出不同的内容，这就是多态** </font>）
+
+```cpp
+class BaseException
+{
+public:
+    virtual void printError()=0;
+};
+
+class NULLPointerException:public BaseException
+{
+public:
+    virtual void printError()
+    {
+        cout<<"空指针异常"<<endl;
+    }
+};
+class OutOfRangeException:public BaseException
+{
+public:
+    virtual void printError()
+    {
+        cout<<"越界异常"<<endl;
+    }
+};
+
+void dowork()//用来抛异常的函数
+{
+//    throw NULLPointerException();
+    throw OutOfRangeException();
+}
+int main()
+{
+    try
+    {
+        dowork();
+    }
+    catch(BaseException & e)//父类引用指向子类对象
+    {
+        e.printError();
+    }
+}
+```
+### 2.6 系统标准异常
+#include \<stdexcept\>
+
+标准库中也提供了很多的异常类，它们是通过类继承组织起来的。异常类继承层级结构图如下：
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/b3d02ff14cdb4c469e72e9eb21e3b983.png)
+不用看，大概知道就行。
+
+调用系统异常示例：对类中的年龄做一个判断，若超出限制就抛出系统异常
+```cpp
+#include <iostream>
+#include <string>
+#include <stdexcept>
+using namespace std;
+
+//需求：对类中的年龄做一个判断，若超出限制就抛出系统异常
+class Person
+{
+public:
+    Person(int age)
+    {
+        if (age<0 || age>150)
+        {
+            throw out_of_range("年龄超出界限");
+        }
+        else
+        {
+            m_Age=age;
+        }
+    }
+    int m_Age;
+};
+void test3()
+{
+    try
+    {
+        Person p=Person(151);
+    }
+    catch(exception &e)//用基类的exception接住就行
+    {
+        cout<<e.what()<<endl;
+    }
+}
+```
+
+### 2.7 编写自己的异常
+需求：继承系统提供的父类异常类exception，编写自己的异常类。对类中的年龄做一个判断，若超出限制就抛出自己写的异常。
+
+继承父类异常类exception只需要重写.what()函数就好，但是要重写.what()还是有一些细节要写
+
+```cpp
+//需求：继承系统提供的父类异常类exception，编写自己的类。
+class MyOutOfRangeException:public exception
+{
+public:
+    MyOutOfRangeException(const char * str)//构造函数
+    {
+        //char*可以隐式转化为string，反之不行
+        this->m_errorInfo= str;
+    }
+    MyOutOfRangeException(string str)//重载构造函数
+    {
+        this->m_errorInfo= str;
+    }
+    virtual const char* what() const//重写.what()函数
+    {
+        //将string转为const char *
+        return m_errorInfo.c_str();
+    }
+    string m_errorInfo;
+};
+class Person1
+{
+public:
+    Person1(int age)
+    {
+        if (age<0 || age>150)
+        {
+            throw MyOutOfRangeException("年龄超出界限");
+        }
+        else
+        {
+            m_Age=age;
+        }
+    }
+    int m_Age;
+};
+int main ()
+{
+    try
+    {
+        Person1 p1=Person1(151);
+    }
+    catch (exception &e)
+    {
+        cout<<e.what()<<endl;
+    }
+}
+```
+```
+输出结果：
+年龄超出界限
+```
